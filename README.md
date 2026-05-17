@@ -4,12 +4,12 @@
 
 ---
 
-## 📸 Project Screenshots
+## Project Screenshots
 
-### ⚙️ n8n Workflow
+### n8n Workflow
 ![n8n Workflow](images/workflow.png)
 
-### 📱 Telegram Output
+### Telegram Output
 ![Telegram Digest](images/telegram_output.jpeg)
 
 ---
