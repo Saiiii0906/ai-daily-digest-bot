@@ -1,0 +1,325 @@
+{
+  "name": "AI Daily Digest Bot → Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "fc5e836f-ed9b-4c76-a4b2-d51ec0ed7b67",
+      "name": "Daily Trigger 8AM1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        3008,
+        1168
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hn.algolia.com/api/v1/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "artificial intelligence machine learning LLM cloud devops"
+            },
+            {
+              "name": "tags",
+              "value": "story"
+            },
+            {
+              "name": "hitsPerPage",
+              "value": "6"
+            },
+            {
+              "name": "numericFilters",
+              "value": "points>10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dc5acf88-3491-47a9-85d9-efe778f7505f",
+      "name": "Fetch HackerNews1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://dev.to/api/articles",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tag",
+              "value": "ai"
+            },
+            {
+              "name": "per_page",
+              "value": "5"
+            },
+            {
+              "name": "top",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "872a341e-459b-4704-b259-7eec5c9b80e3",
+      "name": "Fetch DEV.to AI1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://dev.to/api/articles",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tag",
+              "value": "cloud"
+            },
+            {
+              "name": "per_page",
+              "value": "5"
+            },
+            {
+              "name": "top",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "84fb1ed0-5b92-449e-92d9-6b1732f89771",
+      "name": "Fetch DEV.to Cloud1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://paperswithcode.com/api/v1/papers/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ordering",
+              "value": "-published"
+            },
+            {
+              "name": "items_per_page",
+              "value": "4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05b7ed86-a50a-4ed7-a388-921b7ff29692",
+      "name": "Fetch Papers With Code1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.producthunt.com/feed",
+        "options": {}
+      },
+      "id": "40509a45-c394-4467-ac91-93acafa59da9",
+      "name": "Fetch Product Hunt AI Tools1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        1600
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "576739bd-d404-4a91-b3dd-30ffcb6faf10",
+      "name": "Merge All Sources1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3536,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst categories = {\n  ai_ml: ['ai', 'artificial intelligence', 'machine learning', 'deep learning', 'llm', 'gpt', 'claude', 'gemini', 'neural', 'transformer', 'diffusion', 'generative', 'rag', 'embedding', 'vector', 'fine-tun', 'inference', 'agent', 'openai', 'anthropic', 'mistral', 'llama', 'prompt', 'chatgpt'],\n  cloud: ['cloud', 'aws', 'azure', 'gcp', 'google cloud', 'kubernetes', 'k8s', 'docker', 'serverless', 'lambda', 'devops', 'terraform', 'microservice', 'container', 'ec2', 's3', 'vpc', 'ci/cd'],\n  ai_tools: ['tool', 'cursor', 'copilot', 'v0', 'replit', 'vercel', 'hugging face', 'langchain', 'langgraph', 'crewai', 'autogen', 'ollama', 'lmstudio', 'comfyui', 'stable diffusion'],\n  web_dev: ['javascript', 'typescript', 'react', 'nextjs', 'python', 'rust', 'api', 'web', 'frontend', 'backend', 'fullstack', 'framework', 'database', 'postgresql', 'redis', 'graphql']\n};\n\nconst normalized = [];\n\nfor (const item of items) {\n  const data = item.json;\n\n  if (data.hits && Array.isArray(data.hits)) {\n    for (const hit of data.hits) {\n      if (hit.title && (hit.url || hit.objectID)) {\n        normalized.push({\n          title: hit.title.substring(0, 100),\n          url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,\n          description: (hit.story_text || '').replace(/<[^>]*>/g, '').substring(0, 120),\n          source: 'HackerNews',\n          points: hit.points || 0\n        });\n      }\n    }\n  } else if (data.results && Array.isArray(data.results)) {\n    for (const paper of data.results) {\n      if (paper.title) {\n        normalized.push({\n          title: paper.title.substring(0, 100),\n          url: paper.url_abs || `https://paperswithcode.com/paper/${paper.id}`,\n          description: (paper.abstract || '').substring(0, 120),\n          source: 'Research Paper',\n          points: 0\n        });\n      }\n    }\n  } else if (Array.isArray(data)) {\n    for (const article of data) {\n      if (article.title && article.url) {\n        normalized.push({\n          title: article.title.substring(0, 100),\n          url: article.url,\n          description: (article.description || '').substring(0, 120),\n          source: 'DEV.to',\n          points: article.public_reactions_count || 0\n        });\n      }\n    }\n  } else if (data.title && data.url && data.tag_list !== undefined) {\n    normalized.push({\n      title: data.title.substring(0, 100),\n      url: data.url,\n      description: (data.description || '').substring(0, 120),\n      source: 'DEV.to',\n      points: data.public_reactions_count || 0\n    });\n  }\n}\n\nconst seen = new Set();\nconst unique = [];\nfor (const item of normalized) {\n  const key = item.url.toLowerCase().split('?')[0];\n  if (!seen.has(key)) {\n    seen.add(key);\n    unique.push(item);\n  }\n}\n\nconst categorized = { ai_ml: [], cloud: [], ai_tools: [], web_dev: [] };\n\nfor (const item of unique) {\n  const text = (item.title + ' ' + item.description).toLowerCase();\n  let assigned = false;\n  for (const [cat, keywords] of Object.entries(categories)) {\n    const score = keywords.filter(kw => text.includes(kw)).length;\n    if (score > 0) {\n      categorized[cat].push({ ...item, score });\n      assigned = true;\n      break;\n    }\n  }\n}\n\nconst result = {};\nfor (const [cat, articles] of Object.entries(categorized)) {\n  const top = articles.sort((a, b) => b.score - a.score || b.points - a.points).slice(0, 2);\n  if (top.length > 0) result[cat] = top;\n}\n\nif (Object.keys(result).length === 0) {\n  throw new Error('No articles found. Check if source APIs are responding.');\n}\n\nreturn [{ json: { categorized: result } }];"
+      },
+      "id": "0e8e4451-71fb-489a-a753-21939be19518",
+      "name": "Filter and Categorize1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3792,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6295714690",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "c4392173-7d81-4846-9fd9-e521666e233c",
+      "name": "Send to Telegram1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4288,
+        1248
+      ],
+      "webhookId": "87f42be9-b371-456a-9b12-3ea98a822081",
+      "credentials": {
+        "telegramApi": {
+          "id": "90WXTWXQmjzpVb26",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const { categorized } = $input.first().json;\n\nconst today = new Date().toLocaleDateString('en-IN', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\nconst catLabels = {\n  ai_ml: '🤖 AI & Machine Learning',\n  cloud: '☁️ Cloud & DevOps',\n  ai_tools: '🛠️ AI Tools',\n  web_dev: '🌐 Web Development'\n};\n\nlet msg = `📡 <b>AI Daily Digest</b>\\n`;\nmsg += `📅 ${today}\\n`;\nmsg += `──────────────────────\\n\\n`;\n\nfor (const [cat, articles] of Object.entries(categorized)) {\n  if (!articles || articles.length === 0) continue;\n\n  msg += `${catLabels[cat] || '🔹 ' + cat}\\n\\n`;\n\n  for (const article of articles) {\n    msg += `<b>${article.title}</b>\\n`;\n    if (article.description) {\n      msg += `${article.description}\\n`;\n    }\n    msg += `🔗 <a href=\"${article.url}\">${article.source}</a>\\n\\n`;\n  }\n\n  msg += `──────────────────────\\n\\n`;\n}\n\nmsg += `⚙️ <i>Generated by your AI Digest Bot</i>`;\n\n// Split if over Telegram's 4096 char limit\nconst MAX = 4000;\nconst parts = [];\n\nif (msg.length <= MAX) {\n  parts.push(msg);\n} else {\n  const chunks = msg.split('──────────────────────\\n\\n');\n  let current = '';\n  for (const chunk of chunks) {\n    if ((current + chunk).length > MAX) {\n      if (current) parts.push(current);\n      current = chunk;\n    } else {\n      current += chunk + '──────────────────────\\n\\n';\n    }\n  }\n  if (current) parts.push(current);\n}\n\nreturn parts.map((part, i) => ({\n  json: { message: part, part: i + 1, total: parts.length }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4048,
+        1248
+      ],
+      "id": "8a6fabc5-2738-4423-b99a-ed75341201ca",
+      "name": "Format Digest"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Trigger 8AM1": {
+      "main": [
+        [
+          {
+            "node": "Fetch HackerNews1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch DEV.to AI1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch DEV.to Cloud1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Papers With Code1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Product Hunt AI Tools1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch HackerNews1": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch DEV.to AI1": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Sources1": {
+      "main": [
+        [
+          {
+            "node": "Filter and Categorize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter and Categorize1": {
+      "main": [
+        [
+          {
+            "node": "Format Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Digest": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c8e4a48d-6979-4283-9e4c-dc8d4a331c5d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc216e3f060e6c72e14b350fae4edf36f624825e9901e07b43806b1dac9ab1b2"
+  },
+  "id": "RtKIyJ8UeefFXo8G",
+  "tags": []
+}
