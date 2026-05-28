@@ -81,7 +81,7 @@ Daily Trigger (8AM)
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 
